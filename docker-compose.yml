@@ -1,0 +1,189 @@
+version: '3.8'
+
+services:
+
+  # ─── DATABASE ───────────────────────────────────────
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: management_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  # ─── REDIS (Cache) ──────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  # ─── RABBITMQ (Messages) ────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+
+  # ─── AUTH SERVICE  ───────────────────────
+  auth-service:
+    build: ./backend/auth-service
+    container_name: auth-service
+    restart: always
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: management_db
+      DB_USER: admin
+      DB_PASSWORD: admin123
+      JWT_SECRET: supersecretkey123
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  # ─── PROJECT SERVICE  ────────────────────
+  project-service:
+    build: ./backend/project-service
+    container_name: project-service
+    restart: always
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: management_db
+      DB_USER: admin
+      DB_PASSWORD: admin123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PORT: 3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - app-network
+
+  # ─── TASK SERVICE  ───────────────────────
+  task-service:
+    build: ./backend/task-service
+    container_name: task-service
+    restart: always
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: management_db
+      DB_USER: admin
+      DB_PASSWORD: admin123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PORT: 3003
+    ports:
+      - "3003:3003"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - app-network
+
+  # ─── NOTIFICATION SERVICE ───────────────
+  notification-service:
+    build: ./backend/notification-service
+    container_name: notification-service
+    restart: always
+    environment:
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+      PORT: 3004
+    ports:
+      - "3004:3004"
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+
+  # ─── FRONTEND ───────────────────────
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - auth-service
+      - project-service
+      - task-service
+    networks:
+      - app-network
+
+  # ─── NGINX  ──────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - auth-service
+      - project-service
+      - task-service
+      - notification-service
+    networks:
+      - app-network
+
+  # ─── PROMETHEUS  ─────────────────────────
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - app-network
+
+  # ─── GRAFANA ────────────────────────────
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - app-network
+
+# ─── VOLUMES ────────────────────────────────────────────
+volumes:
+  mysql_data:
+
+# ─── NETWORKS ───────────────────────────────────────────
+networks:
+  app-network:
+    driver: bridge
