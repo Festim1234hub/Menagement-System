@@ -137,3 +137,10 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+<<<<<<< HEAD
+=======
+
+# Frontend dependency manifests (listed in README — not committed)
+frontend/package.json
+frontend/package-lock.json
+>>>>>>> master
