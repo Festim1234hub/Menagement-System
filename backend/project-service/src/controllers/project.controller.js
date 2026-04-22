@@ -10,4 +10,17 @@ const getProjects = async (req, res) => {
   }
 };
 
-module.exports = { getProjects };
+const createProject = async (req, res) => {
+  try {
+    const { name, description, owner_id } = req.body;
+    if (!name || !owner_id) {
+      return res.status(400).json({ error: 'name and owner_id are required' });
+    }
+    const project = await Project.create({ name, description, owner_id });
+    res.status(201).json(project);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create project' });
+  }
+};
+
+module.exports = { getProjects, createProject };
