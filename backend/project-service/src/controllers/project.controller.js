@@ -23,4 +23,19 @@ const createProject = async (req, res) => {
   }
 };
 
-module.exports = { getProjects, createProject };
+const updateProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, status } = req.body;
+    const existing = await Project.findById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    const updated = await Project.update(id, { name, description, status });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update project' });
+  }
+};
+
+module.exports = { getProjects, createProject, updateProject };
