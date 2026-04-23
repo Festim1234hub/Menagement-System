@@ -1,4 +1,5 @@
 const Project = require('../models/project.model');
+const redis = require('../config/redis');
 
 const getProjects = async (req, res) => {
   try {
@@ -38,4 +39,19 @@ const updateProject = async (req, res) => {
   }
 };
 
-module.exports = { getProjects, createProject, updateProject };
+const deleteProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = await Project.findById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    await Project.delete(id);
+    await redis.del(`projects:${existing.owner_id}`);
+    res.json({ message: 'Project deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete project' });
+  }
+};
+
+module.exports = { getProjects, createProject, updateProject, deleteProject };
