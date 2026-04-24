@@ -13,4 +13,17 @@ const getTasks = async (req, res) => {
   }
 };
 
-module.exports = { getTasks };
+const createTask = async (req, res) => {
+  try {
+    const { title, description, project_id, assigned_to, priority, due_date } = req.body;
+    if (!title || !project_id) {
+      return res.status(400).json({ error: 'title and project_id are required' });
+    }
+    const task = await Task.create({ title, description, project_id, assigned_to, priority, due_date });
+    res.status(201).json(task);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create task' });
+  }
+};
+
+module.exports = { getTasks, createTask };
