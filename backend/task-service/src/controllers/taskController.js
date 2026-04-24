@@ -26,4 +26,19 @@ const createTask = async (req, res) => {
   }
 };
 
-module.exports = { getTasks, createTask };
+const updateTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, status, priority, assigned_to, due_date } = req.body;
+    const existing = await Task.findById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    const updated = await Task.update(id, { title, description, status, priority, assigned_to, due_date });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update task' });
+  }
+};
+
+module.exports = { getTasks, createTask, updateTask };
