@@ -41,4 +41,18 @@ const updateTask = async (req, res) => {
   }
 };
 
-module.exports = { getTasks, createTask, updateTask };
+const deleteTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = await Task.findById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    await Task.delete(id);
+    res.json({ message: 'Task deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete task' });
+  }
+};
+
+module.exports = { getTasks, createTask, updateTask, deleteTask };
