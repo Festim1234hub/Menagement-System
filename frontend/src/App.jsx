@@ -1,11 +1,16 @@
 import { useMemo, useState } from "react";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
+import DashboardPage from "./pages/DashboardPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
 
 const pageConfig = {
+  dashboard: {
+    title: "Dashboard",
+    subtitle: "Overview of all your projects."
+  },
   progress: {
     title: "Progress & Analytics",
     subtitle: "Monitor team output and track project momentum."
@@ -21,7 +26,8 @@ const pageConfig = {
 };
 
 function App() {
-  const [activePage, setActivePage] = useState("progress");
+  const [activePage, setActivePage] = useState("dashboard");
+  const [selectedProject, setSelectedProject] = useState(null);
   const currentPage = useMemo(() => pageConfig[activePage], [activePage]);
 
   return (
@@ -29,6 +35,9 @@ function App() {
       <Sidebar activePage={activePage} onChangePage={setActivePage} />
       <main className="main-panel">
         <Header title={currentPage.title} subtitle={currentPage.subtitle} />
+        {activePage === "dashboard" && (
+          <DashboardPage onSelectProject={(p) => { setSelectedProject(p); setActivePage("tasks"); }} />
+        )}
         {activePage === "progress" && <ProgressPage />}
         {activePage === "notifications" && <NotificationsPage />}
         {activePage === "settings" && <SettingsPage />}
