@@ -1,6 +1,7 @@
 import BrandLogo from "./BrandLogo";
 
 const navItems = [
+  { id: "dashboard", label: "Dashboard", icon: "🏠" },
   { id: "progress", label: "Progress & Analytics", icon: "📊" },
   { id: "notifications", label: "Notifications", icon: "🔔" },
   { id: "settings", label: "Settings & Profile", icon: "⚙️" }
