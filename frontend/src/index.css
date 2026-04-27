@@ -298,6 +298,98 @@ body {
   margin-top: 3rem;
 }
 
+/* ─── TASKS PAGE ────────────────────────────────────── */
+.tasks-page {
+  padding: 1.5rem;
+}
+
+.tasks-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tasks-title {
+  margin: 0;
+  flex: 1;
+  font-size: 1.3rem;
+  color: var(--text-primary);
+}
+
+.btn-back {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-back:hover {
+  border-color: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.task-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  transition: border-color 0.2s;
+}
+
+.task-card:hover {
+  border-color: var(--brand-primary);
+}
+
+.task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.task-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.task-card-priority {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.task-card-desc {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.task-card-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.task-card-status {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--brand-primary-mid);
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+}
+
 .chart-small {
   height: 220px;
 }
