@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import TaskList from '../components/tasks/TaskList';
+import TaskBoard from '../components/tasks/TaskBoard';
 
 const mockTasks = [
   { id: 1, title: 'Design homepage', description: 'Create mockups for the new homepage.', status: 'done', priority: 'high', due_date: '2024-04-01' },
@@ -9,16 +10,30 @@ const mockTasks = [
 ];
 
 function TasksPage({ project, onBack }) {
-  const [tasks] = useState(mockTasks);
+  const [tasks, setTasks] = useState(mockTasks);
+  const [view, setView] = useState('board');
+
+  const handleStatusChange = (taskId, newStatus) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+    );
+  };
 
   return (
     <div className="tasks-page">
       <div className="tasks-header">
         <button className="btn-back" onClick={onBack}>← Back</button>
         <h2 className="tasks-title">{project ? project.name : 'Tasks'}</h2>
+        <div className="view-toggle">
+          <button className={`btn-view ${view === 'board' ? 'active' : ''}`} onClick={() => setView('board')}>Board</button>
+          <button className={`btn-view ${view === 'list' ? 'active' : ''}`} onClick={() => setView('list')}>List</button>
+        </div>
         <button className="btn-primary">+ New Task</button>
       </div>
-      <TaskList tasks={tasks} />
+      {view === 'board'
+        ? <TaskBoard tasks={tasks} onStatusChange={handleStatusChange} />
+        : <TaskList tasks={tasks} />
+      }
     </div>
   );
 }
