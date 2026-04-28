@@ -390,6 +390,96 @@ body {
   padding: 0.15rem 0.5rem;
 }
 
+/* ─── TASK BOARD (Drag & Drop) ──────────────────────── */
+.task-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.board-column {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1rem;
+  min-height: 300px;
+  transition: border-color 0.2s;
+}
+
+.board-column.drag-over {
+  border-color: var(--brand-primary);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.board-column-title {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.board-column-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.board-task-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  cursor: grab;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.board-task-card:hover {
+  border-color: var(--brand-primary);
+  transform: translateY(-1px);
+}
+
+.board-task-title {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.board-task-priority {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.priority-low { color: #4ade80; }
+.priority-medium { color: #facc15; }
+.priority-high { color: #f87171; }
+
+.view-toggle {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.btn-view {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-view.active {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary-mid);
+  background: rgba(99, 102, 241, 0.1);
+}
+
 .chart-small {
   height: 220px;
 }
