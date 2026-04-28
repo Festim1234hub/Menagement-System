@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import TaskList from '../components/tasks/TaskList';
 import TaskBoard from '../components/tasks/TaskBoard';
 
@@ -12,12 +12,24 @@ const mockTasks = [
 function TasksPage({ project, onBack }) {
   const [tasks, setTasks] = useState(mockTasks);
   const [view, setView] = useState('board');
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
 
   const handleStatusChange = (taskId, newStatus) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
     );
   };
+
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      const matchSearch = t.title.toLowerCase().includes(search.toLowerCase());
+      const matchStatus = filterStatus === 'all' || t.status === filterStatus;
+      const matchPriority = filterPriority === 'all' || t.priority === filterPriority;
+      return matchSearch && matchStatus && matchPriority;
+    });
+  }, [tasks, search, filterStatus, filterPriority]);
 
   return (
     <div className="tasks-page">
@@ -30,9 +42,30 @@ function TasksPage({ project, onBack }) {
         </div>
         <button className="btn-primary">+ New Task</button>
       </div>
+      <div className="tasks-filters">
+        <input
+          className="filter-search"
+          type="text"
+          placeholder="Search tasks..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+          <option value="all">All Status</option>
+          <option value="todo">To Do</option>
+          <option value="in_progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+        <select className="filter-select" value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
+          <option value="all">All Priority</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
       {view === 'board'
-        ? <TaskBoard tasks={tasks} onStatusChange={handleStatusChange} />
-        : <TaskList tasks={tasks} />
+        ? <TaskBoard tasks={filteredTasks} onStatusChange={handleStatusChange} />
+        : <TaskList tasks={filteredTasks} />
       }
     </div>
   );
