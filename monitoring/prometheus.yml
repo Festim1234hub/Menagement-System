@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: auth-service
+    metrics_path: /health
+    static_configs:
+      - targets: ["auth-service:3001"]
+
+  - job_name: project-service
+    metrics_path: /health
+    static_configs:
+      - targets: ["project-service:3002"]
+
+  - job_name: task-service
+    metrics_path: /health
+    static_configs:
+      - targets: ["task-service:3003"]
+
+  - job_name: notification-service
+    metrics_path: /health
+    static_configs:
+      - targets: ["notification-service:3004"]
