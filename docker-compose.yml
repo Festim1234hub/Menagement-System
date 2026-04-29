@@ -43,6 +43,11 @@ services:
       - "15672:15672"
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   # ─── AUTH SERVICE  ───────────────────────
   auth-service:
@@ -99,12 +104,18 @@ services:
       DB_PASSWORD: admin123
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+      RABBITMQ_EXCHANGE: tasks.events
       PORT: 3003
     ports:
       - "3003:3003"
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -115,11 +126,14 @@ services:
     restart: always
     environment:
       RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+      RABBITMQ_EXCHANGE: tasks.events
+      RABBITMQ_QUEUE: notification.events
       PORT: 3004
     ports:
       - "3004:3004"
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -134,6 +148,7 @@ services:
       - auth-service
       - project-service
       - task-service
+      - notification-service
     networks:
       - app-network
 
@@ -176,6 +191,9 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana:/var/lib/grafana/dashboards
     networks:
       - app-network
 
