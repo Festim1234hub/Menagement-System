@@ -17,20 +17,49 @@ function useRealtimeNotifications() {
   ]);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const template = notificationTemplates[Math.floor(Math.random() * notificationTemplates.length)];
-      setNotifications((prev) => [
-        {
+    const streamUrl = import.meta.env.VITE_NOTIFICATION_STREAM_URL || "/api/notifications/stream";
+    let intervalId;
+    let eventSource;
+
+    const push = (payload) => {
+      setNotifications((prev) => [payload, ...prev].slice(0, 12));
+    };
+
+    const startFallback = () => {
+      if (intervalId) return;
+      intervalId = setInterval(() => {
+        const template = notificationTemplates[Math.floor(Math.random() * notificationTemplates.length)];
+        push({
           id: crypto.randomUUID(),
           type: template.type,
           text: template.text,
           createdAt: new Date().toISOString()
-        },
-        ...prev
-      ].slice(0, 12));
-    }, 5000);
+        });
+      }, 5000);
+    };
 
-    return () => clearInterval(intervalId);
+    try {
+      eventSource = new EventSource(streamUrl);
+      eventSource.onmessage = (event) => {
+        try {
+          const parsed = JSON.parse(event.data);
+          push(parsed);
+        } catch {
+          // ignore malformed messages
+        }
+      };
+      eventSource.onerror = () => {
+        eventSource.close();
+        startFallback();
+      };
+    } catch {
+      startFallback();
+    }
+
+    return () => {
+      if (eventSource) eventSource.close();
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
   return notifications;
