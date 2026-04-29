@@ -1,0 +1,26 @@
+{
+  "title": "Management System Monitoring",
+  "schemaVersion": 39,
+  "version": 1,
+  "style": "dark",
+  "tags": ["management", "microservices"],
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Service Up",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=~\"auth-service|project-service|task-service|notification-service\"}",
+          "legendFormat": "{{job}}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 }
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] }
+}
