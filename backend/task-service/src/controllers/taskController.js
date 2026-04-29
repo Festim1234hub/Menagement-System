@@ -1,4 +1,5 @@
 const Task = require('../models/taskModel');
+const { publishTaskEvent } = require('../config/rabbitmq');
 
 const getTasks = async (req, res) => {
   try {
@@ -20,6 +21,7 @@ const createTask = async (req, res) => {
       return res.status(400).json({ error: 'title and project_id are required' });
     }
     const task = await Task.create({ title, description, project_id, assigned_to, priority, due_date });
+    publishTaskEvent("created", { text: `Task created: ${task.title}`, task });
     res.status(201).json(task);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create task' });
@@ -35,6 +37,7 @@ const updateTask = async (req, res) => {
       return res.status(404).json({ error: 'Task not found' });
     }
     const updated = await Task.update(id, { title, description, status, priority, assigned_to, due_date });
+    publishTaskEvent("updated", { text: `Task updated: ${updated.title}`, task: updated });
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update task' });
