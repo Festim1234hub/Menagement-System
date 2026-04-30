@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api/notifications': {
-        target: 'http://localhost:3004',
+        target: 'http://notification-service:3004',
         changeOrigin: true
       }
     }
