@@ -1,40 +1,62 @@
 import { useState } from 'react';
 import ProjectList from '../components/projects/ProjectList';
-
-const mockProjects = [
-  {
-    id: 1,
-    name: 'Website Redesign',
-    description: 'Redesign the company website with new branding.',
-    status: 'active',
-    created_at: '2024-01-15',
-  },
-  {
-    id: 2,
-    name: 'Mobile App',
-    description: 'Build the iOS and Android app for customers.',
-    status: 'active',
-    created_at: '2024-02-10',
-  },
-  {
-    id: 3,
-    name: 'API Integration',
-    description: 'Integrate third-party payment and analytics APIs.',
-    status: 'completed',
-    created_at: '2024-03-01',
-  },
-];
+import Modal from '../components/shared/Modal';
+import ProjectForm from '../components/projects/ProjectForm';
+import useProjects from '../hooks/useProjects';
+import useAuth from '../hooks/useAuth';
 
 function DashboardPage({ onSelectProject }) {
-  const [projects] = useState(mockProjects);
+  const { user } = useAuth();
+  const { projects, loading, error, createProject, updateProject, deleteProject } = useProjects();
+  const isAdmin = user?.role === 'admin';
+  const [showCreate, setShowCreate] = useState(false);
+  const [editProject, setEditProject] = useState(null);
+
+  const handleCreate = async (data) => {
+    await createProject(data);
+    setShowCreate(false);
+  };
+
+  const handleUpdate = async (data) => {
+    await updateProject(editProject.id, data);
+    setEditProject(null);
+  };
+
+  const handleDelete = async (project) => {
+    if (window.confirm(`Delete "${project.name}"?`)) {
+      await deleteProject(project.id);
+    }
+  };
 
   return (
     <div className="dashboard-page">
       <div className="dashboard-header">
-        <h2 className="dashboard-title">My Projects</h2>
-        <button className="btn-primary">+ New Project</button>
+        <h2 className="dashboard-title">{isAdmin ? 'All Projects' : 'My Projects'}</h2>
+        <button className="btn-primary" onClick={() => setShowCreate(true)}>+ New Project</button>
       </div>
-      <ProjectList projects={projects} onSelectProject={onSelectProject} />
+
+      {loading && <p className="empty-state">Loading projects...</p>}
+      {error && <p className="form-error">{error}</p>}
+      {!loading && (
+        <ProjectList
+          projects={projects}
+          onSelectProject={onSelectProject}
+          onEditProject={setEditProject}
+          onDeleteProject={handleDelete}
+          showOwner={isAdmin}
+        />
+      )}
+
+      {showCreate && (
+        <Modal title="New Project" onClose={() => setShowCreate(false)}>
+          <ProjectForm onSubmit={handleCreate} onCancel={() => setShowCreate(false)} />
+        </Modal>
+      )}
+      {editProject && (
+        <Modal title="Edit Project" onClose={() => setEditProject(null)}>
+          <ProjectForm initial={editProject} onSubmit={handleUpdate} onCancel={() => setEditProject(null)} />
+        </Modal>
+      )}
     </div>
   );
 }
