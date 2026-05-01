@@ -1,13 +1,16 @@
 import BrandLogo from "./BrandLogo";
+import useAuth from "../hooks/useAuth";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: "🏠" },
   { id: "progress", label: "Progress & Analytics", icon: "📊" },
   { id: "notifications", label: "Notifications", icon: "🔔" },
-  { id: "settings", label: "Settings & Profile", icon: "⚙️" }
+  { id: "settings", label: "Settings & Profile", icon: "⚙️" },
 ];
 
 function Sidebar({ activePage, onChangePage }) {
+  const { user } = useAuth();
+
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -30,6 +33,16 @@ function Sidebar({ activePage, onChangePage }) {
             {item.label}
           </button>
         ))}
+        {user?.role === "admin" && (
+          <button
+            type="button"
+            className={`nav-item ${activePage === "admin" ? "active" : ""}`}
+            onClick={() => onChangePage("admin")}
+          >
+            <span>🛡️</span>
+            Admin Panel
+          </button>
+        )}
       </nav>
     </aside>
   );
