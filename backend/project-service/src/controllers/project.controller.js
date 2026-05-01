@@ -3,8 +3,11 @@ const redis = require('../config/redis');
 
 const getProjects = async (req, res) => {
   try {
-    const ownerId = req.query.owner_id;
-    const projects = await Project.findAll(ownerId);
+    if (req.user.role === 'admin') {
+      const projects = await Project.findAllWithOwners();
+      return res.json(projects);
+    }
+    const projects = await Project.findAll(req.user.id);
     res.json(projects);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch projects' });
@@ -13,9 +16,10 @@ const getProjects = async (req, res) => {
 
 const createProject = async (req, res) => {
   try {
-    const { name, description, owner_id } = req.body;
-    if (!name || !owner_id) {
-      return res.status(400).json({ error: 'name and owner_id are required' });
+    const { name, description } = req.body;
+    const owner_id = req.user.id;
+    if (!name) {
+      return res.status(400).json({ error: 'name is required' });
     }
     const project = await Project.create({ name, description, owner_id });
     res.status(201).json(project);

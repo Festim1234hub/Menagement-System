@@ -33,6 +33,16 @@ const Project = {
   async delete(id) {
     await db.query('DELETE FROM projects WHERE id = ?', [id]);
   },
+
+  async findAllWithOwners() {
+    const [rows] = await db.query(
+      `SELECT p.*, u.name AS owner_name
+       FROM projects p
+       LEFT JOIN users u ON p.owner_id = u.id
+       ORDER BY p.created_at DESC`
+    );
+    return rows;
+  },
 };
 
 module.exports = Project;
