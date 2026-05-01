@@ -12,7 +12,7 @@ services:
       MYSQL_USER: admin
       MYSQL_PASSWORD: admin123
     ports:
-      - "3307:3306"
+      - "3308:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -81,6 +81,7 @@ services:
       DB_PASSWORD: admin123
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      JWT_SECRET: supersecretkey123
       PORT: 3002
     ports:
       - "3002:3002"
@@ -105,6 +106,7 @@ services:
       REDIS_PORT: 6379
       RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
       RABBITMQ_EXCHANGE: tasks.events
+      JWT_SECRET: supersecretkey123
       PORT: 3003
     ports:
       - "3003:3003"
@@ -157,7 +159,7 @@ services:
     container_name: nginx
     restart: always
     ports:
-      - "80:80"
+      - "8090:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
