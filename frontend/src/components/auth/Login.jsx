@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const { login } = useAuth();
@@ -19,72 +19,57 @@ const Login = () => {
     setError('');
     try {
       await login(formData.email, formData.password);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Gabim në hyrje!');
+      setError(err.message || 'Login failed.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Hyrje në Sistem
-        </h2>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-brand">
+          <h1 className="auth-title">Orbitlane</h1>
+          <p className="auth-subtitle">Your launchpad for tasks & teams</p>
+        </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-600 p-3 rounded mb-4 text-sm">
-            {error}
-          </div>
-        )}
+        <h2 className="auth-heading">Sign In</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+        {error && <div className="auth-error">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <label>
+            Email
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="email@example.com"
               required
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Fjalëkalimi
-            </label>
+          </label>
+          <label>
+            Password
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
               required
             />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium"
-          >
-            {loading ? 'Duke hyrë...' : 'Hyr'}
+          </label>
+          <button type="submit" className="btn-auth" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-600 mt-4">
-          Nuk ke llogari?{' '}
-          <a href="/register" className="text-blue-600 hover:underline font-medium">
-            Regjistrohu
-          </a>
+        <p className="auth-link">
+          Don't have an account?{' '}
+          <Link to="/register">Register</Link>
         </p>
       </div>
     </div>
