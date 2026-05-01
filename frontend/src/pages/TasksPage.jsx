@@ -1,25 +1,55 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import TaskList from '../components/tasks/TaskList';
 import TaskBoard from '../components/tasks/TaskBoard';
-
-const mockTasks = [
-  { id: 1, title: 'Design homepage', description: 'Create mockups for the new homepage.', status: 'done', priority: 'high', due_date: '2024-04-01' },
-  { id: 2, title: 'Setup API routes', description: 'Define all REST endpoints.', status: 'in_progress', priority: 'high', due_date: '2024-04-10' },
-  { id: 3, title: 'Write unit tests', description: 'Cover core business logic.', status: 'todo', priority: 'medium', due_date: '2024-04-20' },
-  { id: 4, title: 'Deploy to staging', description: 'Push latest build to staging server.', status: 'todo', priority: 'low', due_date: '2024-04-25' },
-];
+import Modal from '../components/shared/Modal';
+import TaskForm from '../components/tasks/TaskForm';
+import useTasks from '../hooks/useTasks';
+import adminService from '../services/adminService';
+import useAuth from '../hooks/useAuth';
 
 function TasksPage({ project, onBack }) {
-  const [tasks, setTasks] = useState(mockTasks);
+  const { user } = useAuth();
+  const { tasks, loading, error, fetchTasks, createTask, updateTask, deleteTask } = useTasks(project?.id);
   const [view, setView] = useState('board');
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
+  const [showCreate, setShowCreate] = useState(false);
+  const [editTask, setEditTask] = useState(null);
+  const [users, setUsers] = useState([]);
 
-  const handleStatusChange = (taskId, newStatus) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
-    );
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      adminService.getUsers().then(setUsers).catch(() => {});
+    }
+  }, [user]);
+
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      await updateTask(taskId, { status: newStatus });
+    } catch (err) {
+      console.error('Failed to update task status:', err);
+    }
+  };
+
+  const handleCreate = async (data) => {
+    await createTask(data);
+    setShowCreate(false);
+  };
+
+  const handleUpdate = async (data) => {
+    await updateTask(editTask.id, data);
+    setEditTask(null);
+  };
+
+  const handleDelete = async (task) => {
+    if (window.confirm(`Delete "${task.title}"?`)) {
+      await deleteTask(task.id);
+    }
   };
 
   const filteredTasks = useMemo(() => {
@@ -40,8 +70,9 @@ function TasksPage({ project, onBack }) {
           <button className={`btn-view ${view === 'board' ? 'active' : ''}`} onClick={() => setView('board')}>Board</button>
           <button className={`btn-view ${view === 'list' ? 'active' : ''}`} onClick={() => setView('list')}>List</button>
         </div>
-        <button className="btn-primary">+ New Task</button>
+        <button className="btn-primary" onClick={() => setShowCreate(true)}>+ New Task</button>
       </div>
+
       <div className="tasks-filters">
         <input
           className="filter-search"
@@ -63,10 +94,25 @@ function TasksPage({ project, onBack }) {
           <option value="high">High</option>
         </select>
       </div>
-      {view === 'board'
-        ? <TaskBoard tasks={filteredTasks} onStatusChange={handleStatusChange} />
-        : <TaskList tasks={filteredTasks} />
-      }
+
+      {loading && <p className="empty-state">Loading tasks...</p>}
+      {error && <p className="form-error">{error}</p>}
+      {!loading && (
+        view === 'board'
+          ? <TaskBoard tasks={filteredTasks} users={users} onStatusChange={handleStatusChange} onEditTask={setEditTask} onDeleteTask={handleDelete} />
+          : <TaskList tasks={filteredTasks} users={users} onEditTask={setEditTask} onDeleteTask={handleDelete} />
+      )}
+
+      {showCreate && (
+        <Modal title="New Task" onClose={() => setShowCreate(false)}>
+          <TaskForm users={users} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} />
+        </Modal>
+      )}
+      {editTask && (
+        <Modal title="Edit Task" onClose={() => setEditTask(null)}>
+          <TaskForm users={users} initial={editTask} onSubmit={handleUpdate} onCancel={() => setEditTask(null)} />
+        </Modal>
+      )}
     </div>
   );
 }
