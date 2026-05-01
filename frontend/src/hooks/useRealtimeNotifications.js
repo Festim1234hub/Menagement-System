@@ -1,68 +1,89 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from 'react';
 
-const notificationTemplates = [
-  { type: "task-created", text: "New task created: Build RabbitMQ consumer" },
-  { type: "task-updated", text: "Task updated: Dashboard API integration moved to QA" },
-  { type: "task-assigned", text: "Task assigned: Set up health-check endpoint" }
-];
+const PREFS_KEY = 'orbitlane_prefs';
+
+function getDesktopPref() {
+  try {
+    const prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+    return prefs.desktopNotifications !== false;
+  } catch {
+    return true;
+  }
+}
+
+function showDesktopNotification(text, type) {
+  if (!getDesktopPref()) return;
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+
+  const title = type === 'task-created' ? 'Task Created' : 'Task Updated';
+  new Notification(title, {
+    body: text,
+    icon: '/favicon.ico',
+  });
+}
 
 function useRealtimeNotifications() {
-  const [notifications, setNotifications] = useState([
-    {
-      id: "n-1",
-      type: "task-created",
-      text: "Initial notification stream connected.",
-      createdAt: new Date().toISOString()
-    }
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    const streamUrl = import.meta.env.VITE_NOTIFICATION_STREAM_URL || "/api/notifications/stream";
-    let intervalId;
+    // Request desktop notification permission on mount
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     let eventSource;
+    let reconnectTimer;
+    let alive = true;
 
     const push = (payload) => {
-      setNotifications((prev) => [payload, ...prev].slice(0, 12));
+      setNotifications((prev) => [payload, ...prev].slice(0, 20));
+      showDesktopNotification(payload.text, payload.type);
     };
 
-    const startFallback = () => {
-      if (intervalId) return;
-      intervalId = setInterval(() => {
-        const template = notificationTemplates[Math.floor(Math.random() * notificationTemplates.length)];
-        push({
-          id: crypto.randomUUID(),
-          type: template.type,
-          text: template.text,
-          createdAt: new Date().toISOString()
-        });
-      }, 5000);
-    };
+    const connect = () => {
+      if (!alive) return;
 
-    try {
-      eventSource = new EventSource(streamUrl);
+      eventSource = new EventSource('/api/notifications/stream');
+
       eventSource.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
-          push(parsed);
+          if (parsed && parsed.text) {
+            push({
+              id: parsed.id || crypto.randomUUID(),
+              type: parsed.type || 'task-updated',
+              text: parsed.text,
+              createdAt: parsed.createdAt || new Date().toISOString(),
+            });
+          }
         } catch {
-          // ignore malformed messages
+          // ignore malformed
         }
       };
+
       eventSource.onerror = () => {
         eventSource.close();
-        startFallback();
+        if (alive) {
+          reconnectTimer = setTimeout(connect, 5000);
+        }
       };
-    } catch {
-      startFallback();
-    }
+    };
+
+    connect();
 
     return () => {
+      alive = false;
       if (eventSource) eventSource.close();
-      if (intervalId) clearInterval(intervalId);
+      if (reconnectTimer) clearTimeout(reconnectTimer);
     };
   }, []);
 
-  return notifications;
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+  }, []);
+
+  return { notifications, clearNotifications };
 }
 
 export default useRealtimeNotifications;
