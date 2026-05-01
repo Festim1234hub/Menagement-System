@@ -1,31 +1,27 @@
 import api from './api';
 
 const authService = {
-
   register: async (name, email, password) => {
-    const response = await api.post('/auth/register', { 
-      name, email, password 
-    });
-    return response.data;
+    return api.post('/api/auth/register', { name, email, password });
   },
 
   login: async (email, password) => {
-    const response = await api.post('/auth/login', { 
-      email, password 
-    });
-    return response.data;
+    return api.post('/api/auth/login', { email, password });
   },
 
   getProfile: async () => {
-    const response = await api.get('/auth/profile');
-    return response.data;
+    return api.get('/api/auth/profile');
   },
+
+  updateProfile: (name, email) => api.put('/api/auth/profile', { name, email }),
+
+  changePassword: (currentPassword, newPassword) =>
+    api.put('/api/auth/password', { currentPassword, newPassword }),
 
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
-
 };
 
 export default authService;
