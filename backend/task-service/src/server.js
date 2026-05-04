@@ -20,7 +20,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.use('/tasks', taskRoutes);
+app.use('/api/tasks', taskRoutes); // 
 
 app.listen(PORT, () => {
   console.log(`task-service running on port ${PORT}`);
