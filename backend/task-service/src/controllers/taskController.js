@@ -16,7 +16,8 @@ const getTasks = async (req, res) => {
 
 const createTask = async (req, res) => {
   try {
-    const { title, description, project_id, assigned_to, priority, due_date } = req.body;
+    const { title, description, project_id, priority, due_date } = req.body;
+    const assigned_to = req.body.assigned_to || null;
     if (!title || !project_id) {
       return res.status(400).json({ error: 'title and project_id are required' });
     }
@@ -31,7 +32,8 @@ const createTask = async (req, res) => {
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, status, priority, assigned_to, due_date } = req.body;
+    const { title, description, status, priority, due_date } = req.body;
+    const assigned_to = req.body.assigned_to || null;
     const existing = await Task.findById(id);
     if (!existing) {
       return res.status(404).json({ error: 'Task not found' });
