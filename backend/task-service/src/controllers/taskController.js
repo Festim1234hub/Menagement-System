@@ -10,6 +10,7 @@ const getTasks = async (req, res) => {
     const tasks = await Task.findByProject(project_id, { status, priority });
     res.json(tasks);
   } catch (err) {
+    console.error('getTasks error:', err);
     res.status(500).json({ error: 'Failed to fetch tasks' });
   }
 };
@@ -24,6 +25,7 @@ const createTask = async (req, res) => {
     publishTaskEvent("created", { text: `Task created: ${task.title}`, task });
     res.status(201).json(task);
   } catch (err) {
+    console.error('createTask error:', err);
     res.status(500).json({ error: 'Failed to create task' });
   }
 };
@@ -40,6 +42,7 @@ const updateTask = async (req, res) => {
     publishTaskEvent("updated", { text: `Task updated: ${updated.title}`, task: updated });
     res.json(updated);
   } catch (err) {
+    console.error('updateTask error:', err);
     res.status(500).json({ error: 'Failed to update task' });
   }
 };

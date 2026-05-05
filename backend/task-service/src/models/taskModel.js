@@ -1,5 +1,12 @@
 const db = require('../config/db');
 
+const normalizeValue = (value) => {
+  if (value === '' || value === undefined) {
+    return null;
+  }
+  return value;
+};
+
 const Task = {
   async findByProject(projectId, filters = {}) {
     let query = 'SELECT * FROM tasks WHERE project_id = ?';
@@ -27,15 +34,30 @@ const Task = {
   async create({ title, description, project_id, assigned_to, priority, due_date }) {
     const [result] = await db.query(
       'INSERT INTO tasks (title, description, project_id, assigned_to, priority, due_date) VALUES (?, ?, ?, ?, ?, ?)',
-      [title, description, project_id, assigned_to, priority, due_date]
+      [
+        title,
+        description,
+        project_id,
+        normalizeValue(assigned_to),
+        priority,
+        normalizeValue(due_date),
+      ]
     );
-    return { id: result.insertId, title, description, project_id, assigned_to, priority, due_date, status: 'todo' };
+    return { id: result.insertId, title, description, project_id, assigned_to: normalizeValue(assigned_to), priority, due_date: normalizeValue(due_date), status: 'todo' };
   },
 
   async update(id, { title, description, status, priority, assigned_to, due_date }) {
     await db.query(
       'UPDATE tasks SET title = ?, description = ?, status = ?, priority = ?, assigned_to = ?, due_date = ? WHERE id = ?',
-      [title, description, status, priority, assigned_to, due_date, id]
+      [
+        title,
+        description,
+        status,
+        priority,
+        normalizeValue(assigned_to),
+        normalizeValue(due_date),
+        id,
+      ]
     );
     return this.findById(id);
   },
